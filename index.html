@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Least Count — Scorecard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F7FB;
+    --surface:#FFFFFF;
+    --surface-alt:#F3F4F8;
+    --border:#E6E8EF;
+    --ink:#131A2A;
+    --ink-soft:#6B7280;
+    --ink-faint:#9CA3AF;
+    --primary:#4F46E5;
+    --primary-dark:#4338CA;
+    --primary-soft:#EEF0FF;
+    --amber:#D97706;
+    --amber-dark:#92400E;
+    --amber-soft:#FFFBEB;
+    --rose:#E11D48;
+    --rose-dark:#9F1239;
+    --rose-soft:#FFF1F3;
+    --shadow: rgba(30,41,59,0.10);
+    --shadow-strong: rgba(30,41,59,0.16);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(900px 500px at 12% -8%, rgba(79,70,229,0.06), transparent 60%),
+      radial-gradient(700px 500px at 100% 0%, rgba(217,119,6,0.05), transparent 55%),
+      var(--bg);
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    padding:32px 16px 64px;
+  }
+  /* kill native number-input spinners everywhere */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;}
+  input[type=number]{-moz-appearance:textfield; appearance:textfield;}
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--primary);
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before, .eyebrow::after{content:"";flex:1;height:1px;background:rgba(79,70,229,0.22);}
+  h1{
+    font-family:'Sora', sans-serif;
+    font-weight:700;
+    font-size:clamp(26px,4vw,36px);
+    margin:10px 0 4px;
+    color:var(--ink);
+    text-align:center;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:14.5px;
+    margin:0 0 28px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  /* ---------- Setup card ---------- */
+  .card{
+    background:var(--surface);
+    border-radius:14px;
+    border:1px solid var(--border);
+    box-shadow:0 20px 45px -24px var(--shadow-strong);
+    position:relative;
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg, var(--primary), var(--amber));
+  }
+  #setupScreen .card{max-width:620px;margin:0 auto;padding:38px 38px 32px;}
+
+  .field-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+    display:block;
+  }
+  .field-group{margin-bottom:22px;}
+
+  .stepper{
+    display:flex; align-items:center; gap:14px;
+  }
+  .stepper button{
+    width:32px;height:32px;border-radius:50%;
+    border:1px solid var(--border);
+    background:var(--surface-alt);
+    color:var(--ink);
+    font-size:17px; font-family:'JetBrains Mono',monospace;
+    cursor:pointer;
+    transition:background .15s, transform .1s, color .15s;
+  }
+  .stepper button:hover{background:var(--primary); color:#fff; border-color:var(--primary);}
+  .stepper button:active{transform:scale(0.92);}
+  .stepper .count{
+    font-family:'Sora', sans-serif; font-size:24px; font-weight:700;
+    min-width:30px; text-align:center;
+  }
+
+  .name-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+    gap:10px;
+    margin-top:14px;
+  }
+  .name-grid input{
+    font-family:'Inter', sans-serif;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--surface-alt);
+    font-size:14px;
+    color:var(--ink);
+    width:100%;
+    transition:border-color .15s, background .15s;
+  }
+  .name-grid input:focus{outline:none; border-color:var(--primary); background:#fff;}
+
+  .num-input{
+    display:flex; align-items:center;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--surface-alt);
+    overflow:hidden;
+  }
+  .num-input input{
+    border:none; padding:10px 12px; font-family:'JetBrains Mono', monospace;
+    font-size:14.5px; width:100%; background:transparent; color:var(--ink);
+  }
+  .num-input input:focus{outline:none;}
+  .num-input span{
+    padding:0 12px; font-size:11.5px; color:var(--ink-soft);
+    font-family:'JetBrains Mono',monospace; border-left:1px solid var(--border);
+    background:var(--surface);
+    align-self:stretch; display:flex; align-items:center;
+  }
+
+  .btn-primary{
+    margin-top:8px;
+    width:100%;
+    padding:14px 20px;
+    border:none;
+    border-radius:9px;
+    background:linear-gradient(180deg, var(--primary), var(--primary-dark));
+    color:#fff;
+    font-family:'Sora', sans-serif;
+    font-weight:600;
+    font-size:15.5px;
+    letter-spacing:.01em;
+    cursor:pointer;
+    box-shadow:0 10px 24px -10px rgba(79,70,229,0.55);
+    transition:transform .12s, box-shadow .12s;
+  }
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 14px 28px -10px rgba(79,70,229,0.6);}
+  .btn-primary:active{transform:translateY(0);}
+  .error-msg{
+    color:var(--rose-dark);
+    font-size:13px;
+    margin-top:-10px;
+    margin-bottom:16px;
+    display:none;
+    font-weight:500;
+  }
+
+  /* ---------- Game screen ---------- */
+  #gameScreen{display:none;}
+  .game-header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:18px; flex-wrap:wrap; gap:12px;
+  }
+  .game-title{
+    font-family:'Sora', sans-serif; color:var(--ink); font-size:20px; font-weight:700;
+  }
+  .game-title small{
+    display:block; font-family:'JetBrains Mono',monospace; font-size:11px;
+    color:var(--ink-soft); letter-spacing:.05em; font-weight:400; margin-top:3px;
+  }
+  .btn-ghost{
+    background:var(--surface);
+    border:1px solid var(--border);
+    color:var(--ink);
+    padding:9px 16px;
+    border-radius:8px;
+    font-family:'Inter',sans-serif;
+    font-size:13px; font-weight:600;
+    cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  .btn-ghost:hover{background:var(--surface-alt); border-color:var(--primary);}
+
+  /* layout: main + sidebar */
+  .game-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 300px;
+    gap:20px;
+    align-items:start;
+  }
+  @media (max-width:900px){ .game-layout{grid-template-columns:1fr;} .sidebar{position:static !important;} }
+  .sidebar{
+    position:sticky; top:20px;
+    display:flex; flex-direction:column; gap:16px;
+  }
+
+  .meta-bar{
+    display:flex; gap:18px; flex-wrap:wrap; align-items:center;
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:12px 18px; margin-bottom:16px;
+    box-shadow:0 8px 22px -16px var(--shadow-strong);
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-soft);
+  }
+  .meta-bar b{color:var(--ink); font-size:13.5px;}
+
+  .hint-bar{
+    font-size:12px; color:var(--ink-faint); margin:-6px 0 14px 2px; font-family:'Inter',sans-serif;
+  }
+  .hint-bar b{color:var(--ink-soft); font-weight:600;}
+
+  /* Winner banner */
+  .winner-banner{
+    display:none;
+    background:linear-gradient(135deg, #FDE68A, #F59E0B);
+    border-radius:12px;
+    padding:20px 26px;
+    margin-bottom:20px;
+    box-shadow:0 16px 36px -16px rgba(217,119,6,0.45);
+    color:#452B02;
+    align-items:center;
+    gap:16px;
+  }
+  .winner-banner .trophy{font-size:32px;}
+  .winner-banner h2{
+    font-family:'Sora',sans-serif; margin:0; font-size:20px; font-weight:700;
+  }
+  .winner-banner p{margin:2px 0 0; font-family:'JetBrains Mono',monospace; font-size:12px; opacity:.8;}
+
+  /* Table */
+  .table-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    box-shadow:0 12px 32px -20px var(--shadow-strong);
+    overflow:auto;
+    max-height:60vh;
+    position:relative;
+    margin-bottom:10px;
+  }
+  table{border-collapse:separate; border-spacing:0; width:100%; font-family:'JetBrains Mono',monospace;}
+  thead th{
+    position:sticky; top:0; z-index:3;
+    background:var(--ink);
+    color:#fff;
+    padding:12px 10px;
+    font-size:11.5px;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    text-align:center;
+    border-bottom:2px solid var(--primary);
+    white-space:nowrap;
+  }
+  thead th:first-child{position:sticky; left:0; z-index:4; text-align:left; padding-left:16px;}
+  .player-th{position:relative;}
+  .player-th .avatar{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:20px;height:20px;border-radius:6px;
+    font-size:10px; font-weight:700; margin-right:6px;
+    color:#fff; font-family:'Inter',sans-serif;
+    vertical-align:middle;
+  }
+  .out-stamp{
+    display:inline-block;
+    margin-top:4px;
+    font-family:'Inter',sans-serif;
+    font-size:9.5px;
+    font-weight:700;
+    letter-spacing:.06em;
+    color:#fff;
+    background:var(--rose);
+    border-radius:20px;
+    padding:2px 8px;
+  }
+  tbody td{
+    padding:7px 8px;
+    text-align:center;
+    border-bottom:1px solid var(--border);
+    font-size:13px;
+    vertical-align:top;
+  }
+  tbody td:first-child{
+    position:sticky; left:0;
+    background:var(--surface-alt);
+    color:var(--ink-soft);
+    font-weight:600;
+    text-align:left;
+    padding-left:16px;
+    border-right:1px solid var(--border);
+    vertical-align:middle;
+  }
+  tbody tr:nth-child(even) td{background:rgba(79,70,229,0.015);}
+  tbody tr:nth-child(even) td:first-child{background:var(--surface-alt);}
+
+  .cell-stack{display:flex; flex-direction:column; align-items:center; gap:4px;}
+  tbody input.score-input{
+    width:58px;
+    text-align:center;
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:6px 4px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    background:#fff;
+    color:var(--ink);
+  }
+  tbody input.score-input:focus{outline:2px solid var(--primary); outline-offset:1px;}
+  tbody input.score-input:disabled{
+    background:var(--surface-alt);
+    color:var(--ink-faint);
+    border-style:dashed;
+  }
+  tbody input.score-input.avg-cell{
+    background:var(--primary-soft);
+    color:var(--primary-dark);
+    font-style:italic;
+    border-style:solid;
+    border-color:rgba(79,70,229,0.25);
+  }
+  .sitout-label{
+    font-size:9.5px; color:var(--ink-faint); display:flex; align-items:center; gap:3px;
+    cursor:pointer; white-space:nowrap; font-family:'Inter',sans-serif;
+  }
+  .sitout-label input[type=checkbox]{width:11px; height:11px; margin:0; cursor:pointer; accent-color:var(--primary);}
+  .cell-out{
+    font-family:'Inter',sans-serif;
+    font-size:11px; font-weight:600;
+    color:var(--ink-faint);
+  }
+  tfoot td{
+    position:sticky; bottom:0;
+    background:var(--ink);
+    color:#fff;
+    font-weight:700;
+    padding:10px;
+    border-top:2px solid var(--primary);
+    font-size:13px;
+  }
+  tfoot td:first-child{
+    position:sticky; left:0; bottom:0; z-index:2;
+    background:var(--ink);
+    text-align:left; padding-left:16px;
+  }
+  tfoot .eliminated-total{color:rgba(255,255,255,0.35); text-decoration:line-through;}
+
+  .table-actions{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; flex-wrap:wrap; margin-bottom:26px;
+  }
+  .btn-add{
+    background:var(--surface);
+    color:var(--primary-dark);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:11px 20px;
+    font-family:'Sora',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    box-shadow:0 8px 18px -14px var(--shadow-strong);
+    transition:transform .12s, border-color .15s;
+  }
+  .btn-add:hover{transform:translateY(-1px); border-color:var(--primary);}
+  .btn-add:disabled{opacity:.45; cursor:not-allowed; transform:none;}
+  .rounds-left{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-soft);
+  }
+
+  /* Sidebar cards */
+  .side-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+    box-shadow:0 10px 26px -20px var(--shadow-strong);
+  }
+  .side-card h3{
+    margin:0 0 10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft);
+  }
+  .lb-list{list-style:none; margin:0; padding:0;}
+  .lb-row{
+    display:flex; align-items:center; gap:8px;
+    padding:8px 4px; border-bottom:1px solid var(--border);
+    font-size:13px;
+  }
+  .lb-row:last-child{border-bottom:none;}
+  .lb-rank{
+    width:22px; text-align:center; font-family:'JetBrains Mono',monospace;
+    font-weight:700; color:var(--ink-soft); font-size:13px; flex:none;
+  }
+  .lb-row .avatar{
+    width:22px;height:22px;border-radius:6px; color:#fff; flex:none;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px; font-weight:700; font-family:'Inter',sans-serif;
+  }
+  .lb-name{flex:1; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .lb-pts{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12.5px;}
+  .lb-out{opacity:.5;}
+  .lb-out .lb-name{text-decoration:line-through;}
+  .lb-tag{
+    font-size:8.5px; background:var(--rose); color:#fff; padding:1px 6px;
+    border-radius:10px; font-weight:700; flex:none;
+  }
+  .lb-winner{background:var(--amber-soft); border-radius:8px; margin:0 -6px; padding-left:10px; padding-right:10px;}
+
+  .out-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+  .out-list li{
+    display:flex; align-items:center; gap:8px;
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:7px 10px;
+    font-size:12.5px;
+  }
+  .out-list .avatar{
+    width:20px;height:20px;border-radius:6px;
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9.5px; font-weight:700; font-family:'Inter',sans-serif; flex:none;
+  }
+  .out-list .meta{color:var(--ink-soft); font-family:'JetBrains Mono',monospace; font-size:11px; margin-left:auto;}
+  .out-empty{color:var(--ink-faint); font-size:13px; font-style:italic;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="setupScreen">
+    <div class="eyebrow">Card game night</div>
+    <h1>Least Count Scorecard</h1>
+    <p class="subtitle">Lowest total survives. Cross the limit and you're out.</p>
+
+    <div class="card">
+      <div class="field-group">
+        <label class="field-label">Number of players</label>
+        <div class="stepper">
+          <button type="button" id="decreasePlayers">−</button>
+          <span class="count" id="playerCountDisplay">4</span>
+          <button type="button" id="increasePlayers">+</button>
+          <span style="font-size:12px;color:var(--ink-soft);font-family:'JetBrains Mono',monospace;">(2–15 players)</span>
+        </div>
+        <div class="name-grid" id="nameGrid"></div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Elimination limit</label>
+        <div class="num-input" style="max-width:220px;">
+          <input type="number" id="maxScoreInput" value="200" min="10" step="5">
+          <span>points</span>
+        </div>
+      </div>
+
+      <div class="error-msg" id="setupError"></div>
+      <button class="btn-primary" id="dealBtn" type="button">Deal the Cards →</button>
+    </div>
+  </div>
+
+  <div id="gameScreen">
+    <div class="game-header">
+      <div class="game-title">Least Count Scorecard<small id="gameSubtitle">Elimination at 200 pts</small></div>
+      <button class="btn-ghost" id="newGameBtn" type="button">New Game</button>
+    </div>
+
+    <div class="winner-banner" id="winnerBanner">
+      <div class="trophy">🏆</div>
+      <div>
+        <h2 id="winnerText"></h2>
+        <p id="winnerSub"></p>
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <span>Round <b id="roundCounter">0</b></span>
+      <span>Out at <b id="limitDisplay">200</b> pts</span>
+      <span>Remaining <b id="remainingCounter">0</b></span>
+    </div>
+
+    <div class="game-layout">
+      <div class="main-col">
+        <p class="hint-bar"><b>Tip:</b> Tab moves to the next player, Enter moves down a round. Check "sit out" if someone missed a round — their score auto-fills as the average of everyone else that round.</p>
+
+        <div class="table-card">
+          <table id="scoreTable">
+            <thead><tr id="tableHeadRow"></tr></thead>
+            <tbody id="tableBody"></tbody>
+            <tfoot><tr id="tableFootRow"></tr></tfoot>
+          </table>
+        </div>
+
+        <div class="table-actions">
+          <button class="btn-add" id="addRoundBtn" type="button">+ Add Round</button>
+          <span class="rounds-left" id="roundsLeftNote"></span>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <div class="side-card">
+          <h3>Leaderboard</h3>
+          <ul class="lb-list" id="leaderboardList"></ul>
+        </div>
+        <div class="side-card">
+          <h3>Out of the game</h3>
+          <ul class="out-list" id="outList"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+// ---------------------------------------------------------------
+// Least Count Scorecard — state & logic
+// ---------------------------------------------------------------
+
+let playerCount = 4;
+const MIN_PLAYERS = 2;
+const MAX_PLAYERS = 15;
+const DEFAULT_VISIBLE_ROUNDS = 5;
+
+let state = null; // set up on startGame()
+
+const AVATAR_COLORS = ['#4F46E5', '#E11D48', '#D97706', '#0891B2', '#7C3AED', '#DB2777', '#059669', '#2563EB',
+  '#C2410C', '#65A30D', '#9333EA', '#0D9488', '#DC2626', '#4338CA', '#B45309'];
+
+// ---------------- Setup screen ----------------
+
+function initials(name) {
+  return name.trim().slice(0, 2).toUpperCase() || '?';
+}
+
+function renderNameGrid() {
+  const grid = document.getElementById('nameGrid');
+  const existing = Array.from(grid.querySelectorAll('input')).map(i => i.value);
+  grid.innerHTML = '';
+  for (let i = 0; i < playerCount; i++) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = `Player ${i + 1}`;
+    input.value = existing[i] || '';
+    input.id = `nameInput${i}`;
+    grid.appendChild(input);
+  }
+}
+
+function changePlayerCount(delta) {
+  playerCount = Math.min(MAX_PLAYERS, Math.max(MIN_PLAYERS, playerCount + delta));
+  document.getElementById('playerCountDisplay').textContent = playerCount;
+  renderNameGrid();
+}
+
+function showSetupError(msg) {
+  const el = document.getElementById('setupError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function clearSetupError() {
+  document.getElementById('setupError').style.display = 'none';
+}
+
+function startGame() {
+  clearSetupError();
+
+  const names = [];
+  for (let i = 0; i < playerCount; i++) {
+    const raw = document.getElementById(`nameInput${i}`).value.trim();
+    names.push(raw || `Player ${i + 1}`);
+  }
+
+  const maxScore = parseInt(document.getElementById('maxScoreInput').value, 10);
+
+  if (isNaN(maxScore) || maxScore <= 0) {
+    showSetupError('Enter a valid elimination limit greater than 0.');
+    return;
+  }
+
+  const dupeCheck = new Set(names.map(n => n.toLowerCase()));
+  if (dupeCheck.size !== names.length) {
+    showSetupError('Player names must be unique.');
+    return;
+  }
+
+  state = {
+    players: names.map((name, i) => ({ id: 'p' + i, name, color: AVATAR_COLORS[i % AVATAR_COLORS.length] })),
+    maxScore,
+    rounds: [],
+    eliminated: {},
+    gameOver: false,
+    winnerId: null,
+    tieNote: null
+  };
+  state.rounds = Array.from({ length: DEFAULT_VISIBLE_ROUNDS }, () => makeEmptyRound());
+
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+  document.getElementById('gameSubtitle').textContent = `Elimination at ${maxScore} pts`;
+  document.getElementById('limitDisplay').textContent = maxScore;
+
+  renderGame();
+}
+
+function makeEmptyRound() {
+  const round = {};
+  if (state) state.players.forEach(p => round[p.id] = { score: null, sitOut: false });
+  return round;
+}
+
+function resetGame() {
+  state = null;
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('setupScreen').style.display = 'block';
+  document.getElementById('winnerBanner').style.display = 'none';
+  clearSetupError();
+}
+
+// ---------------- Game logic ----------------
+
+function addRound() {
+  if (!state || state.gameOver) return;
+  state.rounds.push(makeEmptyRound());
+  renderGame();
+}
+
+function isCellFilled(cell) {
+  return cell.sitOut === true || (cell.score !== null && cell.score !== undefined);
+}
+
+function commitScore(playerId, roundIndex, value) {
+  const num = value === '' ? null : parseInt(value, 10);
+  state.rounds[roundIndex][playerId].score = (num === null || isNaN(num)) ? null : num;
+  computeStandings();
+  maybeAutoAddRound();
+}
+
+function toggleSitOut(playerId, roundIndex, checked) {
+  const cell = state.rounds[roundIndex][playerId];
+  cell.sitOut = checked;
+  if (checked) cell.score = null;
+  computeStandings();
+  maybeAutoAddRound();
+  renderGame();
+}
+
+// If the most recent round is fully entered for every still-active player
+// and the game isn't over, silently add the next round so the player
+// never has to reach for "Add Round" mid-game.
+function maybeAutoAddRound() {
+  if (state.gameOver) return;
+  const lastIdx = state.rounds.length - 1;
+  const lastRound = state.rounds[lastIdx];
+  const complete = state.players.every(p => {
+    const elim = state.eliminated[p.id];
+    if (elim && elim.round < lastIdx + 1) return true; // already out before this round, no cell to fill
+    return isCellFilled(lastRound[p.id]);
+  });
+  if (complete) state.rounds.push(makeEmptyRound());
+}
+
+// Walk through rounds in order, accumulate totals, mark eliminations.
+// Sat-out players are auto-scored as the rounded average of everyone
+// else who actually played that round.
+function computeStandings() {
+  const totals = {};
+  const eliminated = {};
+  const effective = [];
+  state.players.forEach(p => totals[p.id] = 0);
+
+  state.rounds.forEach((round, idx) => {
+    const manualValues = [];
+    state.players.forEach(p => {
+      const elimBefore = eliminated[p.id] && eliminated[p.id].round < idx + 1;
+      if (elimBefore) return;
+      const cell = round[p.id];
+      if (!cell.sitOut && cell.score !== null && cell.score !== undefined && !isNaN(cell.score)) {
+        manualValues.push(cell.score);
+      }
+    });
+    const avg = manualValues.length ? Math.round(manualValues.reduce((a, b) => a + b, 0) / manualValues.length) : null;
+
+    const roundEffective = {};
+    state.players.forEach(p => {
+      const elimBefore = eliminated[p.id] && eliminated[p.id].round < idx + 1;
+      if (elimBefore) { roundEffective[p.id] = null; return; }
+      const cell = round[p.id];
+      let val;
+      if (cell.sitOut) {
+        val = avg;
+      } else {
+        val = (cell.score === null || cell.score === undefined || isNaN(cell.score)) ? null : cell.score;
+      }
+      roundEffective[p.id] = val;
+      if (val !== null) {
+        totals[p.id] += val;
+        if (totals[p.id] >= state.maxScore && !eliminated[p.id]) {
+          eliminated[p.id] = { round: idx + 1, total: totals[p.id] };
+        }
+      }
+    });
+    effective.push(roundEffective);
+  });
+
+  state.eliminated = eliminated;
+  state.totals = totals;
+  state.effective = effective;
+
+  const active = state.players.filter(p => !eliminated[p.id]);
+
+  state.gameOver = false;
+  state.winnerId = null;
+  state.tieNote = null;
+
+  if (active.length === 1) {
+    state.gameOver = true;
+    state.winnerId = active[0].id;
+  } else if (active.length === 0 && state.rounds.length > 0) {
+    let best = null;
+    state.players.forEach(p => {
+      if (!best || totals[p.id] < totals[best.id]) best = p;
+    });
+    state.gameOver = true;
+    state.winnerId = best.id;
+    state.tieNote = 'All players crossed the limit in the same round — lowest total wins.';
+  }
+}
+
+// ---------------- Keyboard navigation ----------------
+
+function canFocusCell(player, r) {
+  if (r < 0 || r >= state.rounds.length) return false;
+  const elim = state.eliminated[player.id];
+  if (elim && elim.round < r + 1) return false; // shows '—', no input
+  const cell = state.rounds[r][player.id];
+  if (cell.sitOut) return false; // disabled, auto-computed
+  if (state.gameOver && !(elim && elim.round === r + 1)) return false;
+  return true;
+}
+
+function focusCell(r, p) {
+  const el = document.querySelector(`input.score-input[data-round="${r}"][data-player-index="${p}"]`);
+  if (el) { el.focus(); if (el.select) el.select(); }
+}
+
+function focusNextHorizontal(r, p, dir) {
+  const n = state.players.length;
+  let steps = 0;
+  let roundsPushed = 0;
+  while (steps < 400) {
+    p += dir;
+    if (p >= n) { p = 0; r += 1; }
+    else if (p < 0) { p = n - 1; r -= 1; }
+    if (r < 0) return;
+    if (r >= state.rounds.length) {
+      if (state.gameOver || roundsPushed >= 5) return;
+      state.rounds.push(makeEmptyRound());
+      roundsPushed++;
+      renderGame();
+    }
+    if (canFocusCell(state.players[p], r)) { focusCell(r, p); return; }
+    steps++;
+  }
+}
+
+function focusNextVertical(p, r, dir) {
+  const player = state.players[p];
+  const elim = state.eliminated[player.id];
+  if (dir > 0 && elim && elim.round <= r + 1) return; // dead end, no more cells for this player
+  let rr = r;
+  let roundsPushed = 0;
+  let steps = 0;
+  while (steps < 400) {
+    rr += dir;
+    if (rr < 0) return;
+    if (rr >= state.rounds.length) {
+      if (state.gameOver || roundsPushed >= 5) return;
+      state.rounds.push(makeEmptyRound());
+      roundsPushed++;
+      renderGame();
+    }
+    if (canFocusCell(player, rr)) { focusCell(rr, p); return; }
+    steps++;
+  }
+}
+
+// ---------------- Rendering ----------------
+
+function renderGame() {
+  if (!state.totals) computeStandings();
+
+  renderTable();
+  renderMeta();
+  renderLeaderboard();
+  renderOutList();
+  renderWinnerBanner();
+
+  const addBtn = document.getElementById('addRoundBtn');
+  addBtn.disabled = state.gameOver;
+  const activeCount = state.players.length - Object.keys(state.eliminated).length;
+  document.getElementById('roundsLeftNote').textContent = state.gameOver
+    ? 'Game over'
+    : `${activeCount} player${activeCount === 1 ? '' : 's'} still in`;
+}
+
+function renderTable() {
+  const headRow = document.getElementById('tableHeadRow');
+  const body = document.getElementById('tableBody');
+  const footRow = document.getElementById('tableFootRow');
+
+  headRow.innerHTML = '<th>Round</th>';
+  state.players.forEach(p => {
+    const th = document.createElement('th');
+    th.className = 'player-th';
+    const elim = state.eliminated[p.id];
+    th.innerHTML = `<span class="avatar" style="background:${p.color}">${initials(p.name)}</span>${escapeHtml(p.name)}` +
+      (elim ? `<br><span class="out-stamp">OUT · R${elim.round}</span>` : '');
+    headRow.appendChild(th);
+  });
+
+  body.innerHTML = '';
+  state.rounds.forEach((round, idx) => {
+    const tr = document.createElement('tr');
+    const roundCell = document.createElement('td');
+    roundCell.textContent = idx + 1;
+    tr.appendChild(roundCell);
+
+    state.players.forEach((p, pIdx) => {
+      const td = document.createElement('td');
+      const elim = state.eliminated[p.id];
+      const wasEliminatedBefore = elim && elim.round < idx + 1;
+
+      if (wasEliminatedBefore) {
+        td.innerHTML = '<span class="cell-out">—</span>';
+      } else {
+        const cellData = round[p.id];
+        const stack = document.createElement('div');
+        stack.className = 'cell-stack';
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.className = 'score-input';
+        input.min = 0;
+        input.step = 1;
+        input.placeholder = cellData.sitOut ? 'avg' : '–';
+        input.dataset.round = idx;
+        input.dataset.playerIndex = pIdx;
+
+        const lockedByGameOver = state.gameOver && !(elim && elim.round === idx + 1);
+
+        if (cellData.sitOut) {
+          const effVal = state.effective[idx] ? state.effective[idx][p.id] : null;
+          input.value = (effVal === null || effVal === undefined) ? '' : effVal;
+          input.disabled = true;
+          input.classList.add('avg-cell');
+        } else {
+          input.value = (cellData.score === null || cellData.score === undefined) ? '' : cellData.score;
+          input.disabled = lockedByGameOver;
+        }
+
+        input.addEventListener('change', () => {
+          commitScore(p.id, idx, input.value);
+          renderGame();
+        });
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Tab') {
+            e.preventDefault();
+            commitScore(p.id, idx, input.value);
+            renderGame();
+            focusNextHorizontal(idx, pIdx, e.shiftKey ? -1 : 1);
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            commitScore(p.id, idx, input.value);
+            renderGame();
+            focusNextVertical(pIdx, idx, e.shiftKey ? -1 : 1);
+          }
+        });
+        stack.appendChild(input);
+
+        if (!lockedByGameOver) {
+          const label = document.createElement('label');
+          label.className = 'sitout-label';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = cellData.sitOut;
+          cb.addEventListener('change', () => toggleSitOut(p.id, idx, cb.checked));
+          label.appendChild(cb);
+          label.appendChild(document.createTextNode('sit out'));
+          stack.appendChild(label);
+        }
+
+        td.appendChild(stack);
+      }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+
+  footRow.innerHTML = '<td>Total</td>';
+  state.players.forEach(p => {
+    const td = document.createElement('td');
+    const elim = state.eliminated[p.id];
+    td.textContent = state.totals[p.id];
+    if (elim) td.classList.add('eliminated-total');
+    footRow.appendChild(td);
+  });
+}
+
+function renderMeta() {
+  const active = state.players.filter(p => !state.eliminated[p.id]);
+  document.getElementById('roundCounter').textContent = `${state.rounds.length}`;
+  document.getElementById('remainingCounter').textContent = `${active.length}/${state.players.length}`;
+}
+
+function renderLeaderboard() {
+  const list = document.getElementById('leaderboardList');
+  const ranked = [...state.players].sort((a, b) => state.totals[a.id] - state.totals[b.id]);
+
+  list.innerHTML = '';
+  ranked.forEach((p, i) => {
+    const elim = state.eliminated[p.id];
+    const isWinner = state.gameOver && p.id === state.winnerId;
+    const li = document.createElement('li');
+    li.className = 'lb-row' + (elim ? ' lb-out' : '') + (isWinner ? ' lb-winner' : '');
+    const rankLabel = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+    li.innerHTML = `<span class="lb-rank">${rankLabel}</span>` +
+      `<span class="avatar" style="background:${p.color}">${initials(p.name)}</span>` +
+      `<span class="lb-name">${escapeHtml(p.name)}</span>` +
+      `<span class="lb-pts">${state.totals[p.id]}</span>` +
+      (elim ? '<span class="lb-tag">OUT</span>' : '');
+    list.appendChild(li);
+  });
+}
+
+function renderOutList() {
+  const list = document.getElementById('outList');
+  const entries = state.players
+    .map(p => ({ p, elim: state.eliminated[p.id] }))
+    .filter(e => e.elim)
+    .sort((a, b) => a.elim.round - b.elim.round);
+
+  if (!entries.length) {
+    list.innerHTML = '<span class="out-empty">No one has crossed the limit yet.</span>';
+    return;
+  }
+
+  list.innerHTML = '';
+  entries.forEach(({ p, elim }) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="avatar" style="background:${p.color}">${initials(p.name)}</span>` +
+      `${escapeHtml(p.name)}<span class="meta">R${elim.round} · ${elim.total} pts</span>`;
+    list.appendChild(li);
+  });
+}
+
+function renderWinnerBanner() {
+  const banner = document.getElementById('winnerBanner');
+  if (!state.gameOver) {
+    banner.style.display = 'none';
+    return;
+  }
+  const winner = state.players.find(p => p.id === state.winnerId);
+  banner.style.display = 'flex';
+  document.getElementById('winnerText').textContent = `${winner.name} wins with ${state.totals[winner.id]} points!`;
+  document.getElementById('winnerSub').textContent = state.tieNote
+    ? state.tieNote
+    : `Last one standing under ${state.maxScore} points.`;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ---------------- Init ----------------
+
+function init() {
+  renderNameGrid();
+  document.getElementById('decreasePlayers').addEventListener('click', () => changePlayerCount(-1));
+  document.getElementById('increasePlayers').addEventListener('click', () => changePlayerCount(1));
+  document.getElementById('dealBtn').addEventListener('click', startGame);
+  document.getElementById('newGameBtn').addEventListener('click', resetGame);
+  document.getElementById('addRoundBtn').addEventListener('click', addRound);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
